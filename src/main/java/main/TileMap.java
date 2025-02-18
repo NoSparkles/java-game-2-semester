@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class TileMap {
     // position
     private double x;
@@ -64,8 +67,8 @@ public class TileMap {
             this.tiles[0] = new Tile(transparentTile, Tile.NORMAL);
             int i = 1;
             BufferedImage subimage;
-            for (int row = 0; row < 9; ++row) {
-                for (int col = 7; col < 15; ++col) {
+            for (int row = 0; row < 1; ++row) {
+                for (int col = 7; col < 8; ++col) {
                     subimage = this.tileset.getSubimage(row * this.tileSize, col * this.tileSize, this.tileSize, this.tileSize);
                     this.tiles[i] = new Tile(subimage, Tile.BLOCKED);
                     ++i;
@@ -80,21 +83,24 @@ public class TileMap {
         // load map from json file
         try {
             InputStream in = getClass().getResourceAsStream(s);
+            if (in == null) {
+                throw new IOException("Resource not found: " + s);
+            }
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = br.readLine()) != null) {
-            sb.append(line);
+                sb.append(line);
             }
             br.close();
             String jsonString = sb.toString();
-            org.json.JSONObject jsonObject = new org.json.JSONObject(jsonString);
+            JSONObject jsonObject = new JSONObject(jsonString);
             this.numCols = jsonObject.getInt("numCols");
             this.numRows = jsonObject.getInt("numRows");
             this.map = new int[this.numRows][this.numCols];
-            org.json.JSONArray mapArray = jsonObject.getJSONArray("map");
+            JSONArray mapArray = jsonObject.getJSONArray("map");
             for (int i = 0; i < this.numRows; ++i) {
-                org.json.JSONArray rowArray = mapArray.getJSONArray(i);
+                JSONArray rowArray = mapArray.getJSONArray(i);
                 for (int j = 0; j < this.numCols; ++j) {
                     this.map[i][j] = rowArray.getInt(j);
                 }
@@ -105,10 +111,9 @@ public class TileMap {
             this.xmax = 0;
             this.ymin = GamePanel.HEIGHT - this.height;
             this.ymax = 0;
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public int getTileSize() {

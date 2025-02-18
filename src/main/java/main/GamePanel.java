@@ -6,13 +6,14 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener{
     // dimensions
-    public static final int PANEL_WIDTH = 320;
-    public static final int PANEL_HEIGHT = 240;
-    public static final int SCALE = 3;
+    public static final int PANEL_WIDTH = 176;
+    public static final int PANEL_HEIGHT = 112;
+    public static final int SCALE = 4;
 
     // game thread
     private Thread thread;
