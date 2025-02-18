@@ -1,17 +1,20 @@
 package main;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 
 public class Level1State extends GameState{
+    private TileMap tilemap;
 
     public Level1State(GameStateManager gsm) {
         super(gsm);
+        this.init();
     }
 
     @Override
     public void init() {
-        
+        this.tilemap = new TileMap();
+        this.tilemap.loadTiles();
+        this.tilemap.loadMap("/Maps/map1.json");
     }
 
     @Override
@@ -21,8 +24,7 @@ public class Level1State extends GameState{
 
     @Override
     public void draw(Graphics2D g) {
-        g.setColor(Color.RED);
-        g.fillRect(0, 0, GamePanel.PANEL_WIDTH, GamePanel.PANEL_HEIGHT);
+        this.tilemap.draw(g);
     }
 
     @Override
