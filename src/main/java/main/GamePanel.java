@@ -11,8 +11,8 @@ import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener{
     // dimensions
-    public static final int PANEL_WIDTH = 176;
-    public static final int PANEL_HEIGHT = 112;
+    public static final int WIDTH = 176;
+    public static final int HEIGHT = 112;
     public static final int SCALE = 4;
 
     // game thread
@@ -30,7 +30,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     
     public GamePanel() {
         super();
-        this.setPreferredSize(new Dimension(GamePanel.PANEL_WIDTH * GamePanel.SCALE, GamePanel.PANEL_HEIGHT * GamePanel.SCALE));
+        this.setPreferredSize(new Dimension(GamePanel.WIDTH * GamePanel.SCALE, GamePanel.HEIGHT * GamePanel.SCALE));
         this.setFocusable(true);
         this.requestFocus();
     }
@@ -46,7 +46,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     }
 
     private void init() {
-        this.image = new BufferedImage(GamePanel.PANEL_WIDTH, GamePanel.PANEL_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        this.image = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
         this.g = (Graphics2D) this.image.getGraphics();
         this.running = true;
 
@@ -92,7 +92,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
 
     private void drawToScreen() {
         Graphics g2 = (Graphics) this.getGraphics();
-        g2.drawImage(this.image, 0, 0, GamePanel.PANEL_WIDTH * GamePanel.SCALE, GamePanel.PANEL_HEIGHT * GamePanel.SCALE, null);
+        g2.drawImage(this.image, 0, 0, GamePanel.WIDTH * GamePanel.SCALE, GamePanel.HEIGHT * GamePanel.SCALE, null);
         g2.dispose();
     }
 

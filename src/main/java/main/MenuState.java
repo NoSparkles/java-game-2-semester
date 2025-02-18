@@ -21,16 +21,14 @@ public class MenuState extends GameState{
 
     @Override
     public void draw(Graphics2D g) {
-        System.out.println("drawing menu");
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, GamePanel.WIDTH * GamePanel.SCALE, GamePanel.HEIGHT * GamePanel.SCALE);
         g.setColor(Color.WHITE);
-        g.drawString("Press any key to start", (GamePanel.PANEL_WIDTH) / 2 - 50, (GamePanel.PANEL_HEIGHT) / 2);
+        g.drawString("Press any key to start", (GamePanel.WIDTH) / 2 - 50, (GamePanel.HEIGHT) / 2);
     }
 
     @Override
     public void keyPressed(int k) {
-        System.out.println("pressed");
         this.gsm.setState(GameStateManager.LEVEL1STATE);
     }
 

@@ -58,9 +58,9 @@ public class TileMap {
         try {
             this.tileset = javax.imageio.ImageIO.read(getClass().getResourceAsStream("/sheet.png"));
             this.tiles = new Tile[50];
-            BufferedImage transparentTile = new BufferedImage(tileSize, tileSize, BufferedImage.TYPE_INT_ARGB);
-            for (int i = 0; i < tileSize; ++i) {
-                for (int j = 0; j < tileSize; ++j) {
+            BufferedImage transparentTile = new BufferedImage(this.tileSize, this.tileSize, BufferedImage.TYPE_INT_ARGB);
+            for (int i = 0; i < this.tileSize; ++i) {
+                for (int j = 0; j < this.tileSize; ++j) {
                     transparentTile.setRGB(i, j, 0x00000000);
                 }
             }
@@ -69,7 +69,7 @@ public class TileMap {
             BufferedImage subimage;
             for (int row = 0; row < 1; ++row) {
                 for (int col = 7; col < 8; ++col) {
-                    subimage = this.tileset.getSubimage(row * this.tileSize, col * this.tileSize, this.tileSize, this.tileSize);
+                    subimage = this.tileset.getSubimage(col * this.tileSize, row * this.tileSize, this.tileSize, this.tileSize);
                     this.tiles[i] = new Tile(subimage, Tile.BLOCKED);
                     ++i;
                 } 
@@ -175,18 +175,19 @@ public class TileMap {
     public void draw(Graphics2D g) {
         for (int row = this.rowOffset; row < this.rowOffset + this.numRowsToDraw; ++row) {
             if (row >= this.numRows) {
-            break;
-            }
-            for (int col = this.colOffset; col < this.colOffset + this.numColsToDraw; ++col) {
-            if (col >= this.numCols) {
                 break;
             }
-            if (this.map[row][col] == 0) {
-                continue;
+            for (int col = this.colOffset; col < this.colOffset + this.numColsToDraw; ++col) {
+                if (col >= this.numCols) {
+                    break;
+                }
+                if (this.map[row][col] == 0) {
+                    continue;
+                }
+                System.out.print(this.map[row][col]);
+                g.drawImage(this.tiles[this.map[row][col]].getImage(), (int)this.x + col * this.tileSize, (int)this.y + row * this.tileSize, null);
             }
-            int rc = this.map[row][col];
-            g.drawImage(this.tiles[rc].getImage(), (int)this.x + col * this.tileSize, (int)this.y + row * this.tileSize, null);
-            }
+            System.out.println("");
         }
     }
 }
