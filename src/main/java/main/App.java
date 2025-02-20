@@ -14,7 +14,7 @@ public class App extends PApplet {
     boolean inMenu = true;
     boolean editingMode = true; // Start in editing mode
     int selectedBlock = 0;
-    int toolbarItemsPerRow = 17; // Number of items per row in the toolbar
+    int toolbarItemsPerRow = 7; // Number of items per row in the toolbar
 
     public static void main(String[] args) {
         PApplet.main("main.App");
@@ -120,8 +120,16 @@ public class App extends PApplet {
             // Clicked on the toolbar
             int row = (mouseY - (height - toolbarHeight)) / toolbarTileSize;
             int col = mouseX / toolbarTileSize;
-            if (col >= 0 && col < toolbarItemsPerRow && row * toolbarItemsPerRow + col < (tileSheet.width / toolbarTileSize) * (tileSheet.height / toolbarTileSize)) {
-                selectedBlock = row * toolbarItemsPerRow + col;
+            int index = row * toolbarItemsPerRow + col;
+    
+            int startRow = 0; // Starting row
+            int startCol = 7; // Starting column
+            int endCol = 14; // Ending column
+    
+            int tileIndex = (startRow + index / (endCol - startCol)) * (tileSheet.width / toolbarTileSize) + (startCol + index % (endCol - startCol));
+    
+            if (col >= 0 && col < toolbarItemsPerRow && row * toolbarItemsPerRow + col < 7 * 8) { // Adjusted range check
+                selectedBlock = tileIndex;
             }
         } else {
             // Clicked on the tile map
@@ -132,6 +140,8 @@ public class App extends PApplet {
             }
         }
     }
+    
+    
     
 
     void drawTileMap() {
@@ -149,21 +159,30 @@ public class App extends PApplet {
 
     void drawToolbar() {
         int itemsPerRow = toolbarItemsPerRow;
-        int totalTiles = (tileSheet.width / toolbarTileSize) * (tileSheet.height / toolbarTileSize);
+        int totalTiles = (7 * 8); // Number of tiles to read (7 rows by 8 columns)
         int toolbarX = 0; // Toolbar starting at the leftmost side
         int toolbarY = height - toolbarTileSize * 10; // Positioned at the bottom
     
+        int startRow = 0; // Starting row
+        int startCol = 7; // Starting column
+        int endCol = 14; // Ending column
+    
         for (int i = 0; i < totalTiles; i++) {
-            int row = i / itemsPerRow;
-            int col = i % itemsPerRow;
-            int sx = (i % (tileSheet.width / toolbarTileSize)) * toolbarTileSize;
-            int sy = (i / (tileSheet.width / toolbarTileSize)) * toolbarTileSize;
-            image(tileSheet, toolbarX + col * toolbarTileSize, toolbarY + row * toolbarTileSize, toolbarTileSize, toolbarTileSize, sx, sy, sx + toolbarTileSize, sy + toolbarTileSize);
-            if (i == selectedBlock) {
+            int row = startRow + i / (endCol - startCol);
+            int col = startCol + i % (endCol - startCol);
+            int sx = col * toolbarTileSize;
+            int sy = row * toolbarTileSize;
+            int toolbarIndex = (i % itemsPerRow) + (i / itemsPerRow) * itemsPerRow; // Calculate toolbar index
+    
+            image(tileSheet, toolbarX + (i % itemsPerRow) * toolbarTileSize, toolbarY + (i / itemsPerRow) * toolbarTileSize, toolbarTileSize, toolbarTileSize, sx, sy, sx + toolbarTileSize, sy + toolbarTileSize);
+    
+            if (toolbarIndex == selectedBlock) {
                 noFill();
                 stroke(255, 0, 0);
-                rect(toolbarX + col * toolbarTileSize, toolbarY + row * toolbarTileSize, toolbarTileSize, toolbarTileSize);
+                rect(toolbarX + (i % itemsPerRow) * toolbarTileSize, toolbarY + (i / itemsPerRow) * toolbarTileSize, toolbarTileSize, toolbarTileSize);
             }
         }
     }
+    
+    
 }
