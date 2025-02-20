@@ -2,6 +2,8 @@ package main;
 
 import processing.core.PApplet;
 import processing.core.PImage;
+import processing.data.JSONArray;
+import processing.data.JSONObject;
 
 public class App extends PApplet {
     PImage tileSheet;
@@ -34,8 +36,25 @@ public class App extends PApplet {
                 tileMap[i][j] = -1; // Empty tile
             }
         }
+        loadTileMap(); // Load the tile map from the JSON file
     }
     
+    void saveTileMap() {
+        JSONObject json = new JSONObject();
+        JSONArray mapArray = new JSONArray();
+        
+        for (int i = 0; i < tileMap.length; i++) {
+            JSONArray rowArray = new JSONArray();
+            for (int j = 0; j < tileMap[i].length; j++) {
+                rowArray.append(tileMap[i][j]);
+            }
+            mapArray.append(rowArray);
+        }
+        
+        json.setJSONArray("tileMap", mapArray);
+        saveJSONObject(json, "map.json");
+        println("Tile map saved to map.json");
+    }
     
 
     public void draw() {
@@ -54,13 +73,34 @@ public class App extends PApplet {
         }
     }
 
+    void loadTileMap() {
+        JSONObject json = loadJSONObject("map.json");
+        if (json == null) {
+            println("Error loading map.json. File not found or invalid.");
+            return;
+        }
+        JSONArray mapArray = json.getJSONArray("tileMap");
+        for (int i = 0; i < tileMap.length; i++) {
+            JSONArray rowArray = mapArray.getJSONArray(i);
+            for (int j = 0; j < tileMap[i].length; j++) {
+                tileMap[i][j] = rowArray.getInt(j);
+            }
+        }
+        println("Tile map loaded from map.json");
+    }
+    
+
     public void keyPressed() {
         if (inMenu) {
             inMenu = false;
         } else if (key == 'P' || key == 'p') {
+            if (editingMode) {
+                saveTileMap(); // Save the tile map when exiting editing mode
+            }
             editingMode = !editingMode; // Toggle editing mode
         }
     }
+    
 
     public void mousePressed() {
         if (!inMenu && editingMode) {
