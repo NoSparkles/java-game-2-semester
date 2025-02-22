@@ -67,15 +67,15 @@ public class PlatformerGame extends PApplet {
     }
 
     void updateCamera() {
-        // Center the camera on the player if the player is more than half the screen away from the edge
-        if (playerX > width / 2 && playerX < map[0].length * tileSize - width / 2) {
-            cameraX = playerX - width / 2;
-        } else if (playerX >= map[0].length * tileSize - width / 2) {
-            cameraX = map[0].length * tileSize - width;
-        } else {
-            cameraX = 0;
-        }
+        float targetCameraX = playerX - width / 2 + tileSize / 2;
+    
+        // Clamp the targetCameraX value to the map boundaries
+        targetCameraX = max(0, min(targetCameraX, map[0].length * tileSize - width));
+    
+        // Apply linear interpolation to smooth the camera movement
+        cameraX = lerp(cameraX, targetCameraX, (float) 0.1);
     }
+    
 
     int[][] loadMap(String filename) {
         JSONObject json = loadJSONObject(filename);
