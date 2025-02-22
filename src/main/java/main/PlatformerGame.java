@@ -19,6 +19,8 @@ public class PlatformerGame extends PApplet {
 
     boolean[] keys = new boolean[128];
 
+    float cameraX = 0;
+
     public static void main(String[] args) {
         PApplet.main("main.PlatformerGame");
     }
@@ -54,13 +56,25 @@ public class PlatformerGame extends PApplet {
             keys[keyCode] = false;
         }
     }
-    
 
     public void draw() {
         background(0);
+        updateCamera();
+        translate(-cameraX, 0); // Apply camera translation
         drawMap();
         updatePlayer();
         displayPlayer();
+    }
+
+    void updateCamera() {
+        // Center the camera on the player if the player is more than half the screen away from the edge
+        if (playerX > width / 2 && playerX < map[0].length * tileSize - width / 2) {
+            cameraX = playerX - width / 2;
+        } else if (playerX >= map[0].length * tileSize - width / 2) {
+            cameraX = map[0].length * tileSize - width;
+        } else {
+            cameraX = 0;
+        }
     }
 
     int[][] loadMap(String filename) {
