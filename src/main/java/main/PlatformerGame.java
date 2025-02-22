@@ -6,49 +6,30 @@ import processing.data.JSONObject;
 
 public class PlatformerGame extends PApplet {
     int[][] map;
-    int tileSize = 60; // Double the tile size
-    PImage tileset;
-    PImage playerSprites;
-    PImage[] playerAnimations = new PImage[16]; // 2 idle, 9 walking, 1 jumping, 4 gliding
-
-    final int IDLE = 0;
-    final int WALKING = 1;
-    final int JUMPING = 2;
-    final int GLIDING = 3;
-
-    float playerX, playerY;
-    float speed = 5; // Double the speed
-    float jumpSpeed = -13; // Double the jump speed
-    float gravity = 1; // Double the gravityd
-    boolean facingRight = true;
-    float playerYVelocity = 0;
-    boolean isJumping = false;
+    int tileSize = 60;
+    PImage tileset, playerSprites;
+    PImage[] playerAnimations = new PImage[16];
+    
+    final int MENU = 0, LEVEL1 = 1, LEVEL2 = 2, LEVEL3 = 3;
+    int gameState = MENU;
+    int currentLevel = 1;
+    
+    float playerX, playerY, speed = 5, jumpSpeed = -13, gravity = 1, playerYVelocity = 0;
+    boolean facingRight = true, isJumping = false;
     boolean[] keys = new boolean[128];
     float cameraX = 0;
-
+    
     public static void main(String[] args) {
         PApplet.main("main.PlatformerGame");
     }
-
+    
     public void settings() {
-        size(960, 540); // Double the window size
+        size(960, 540);
     }
-
+    
     public void setup() {
-        map = loadMap("map1.json");
         tileset = loadImage("Tilesets/grasstileset.png");
         playerSprites = loadImage("Sprites/Player/playersprites.png");
-
-        if (tileset == null || playerSprites == null) {
-            println("Error: Image not loaded.");
-            exit();
-        } else {
-            println("Tileset and player sprites loaded successfully.");
-        }
-        
-        playerX = tileSize;
-        playerY = tileSize;
-        tileset.loadPixels();
         loadPlayerAnimations();
     }
 
@@ -74,36 +55,74 @@ public class PlatformerGame extends PApplet {
         }
     }
     
-
     public void keyPressed() {
-        if (keyCode < 128) {
-            keys[keyCode] = true;
+        if (keyCode < 128) keys[keyCode] = true;
+        if (gameState == MENU && key == ' ') startGame();
+        if (gameState != MENU) {
+          if (key == 'J' || key == 'j') changeLevel(-1);
+          if (key == 'K' || key == 'k') changeLevel(1);
         }
-    }
-
+      }
+      
     public void keyReleased() {
-        if (keyCode < 128) {
-            keys[keyCode] = false;
-        }
+        if (keyCode < 128) keys[keyCode] = false;
     }
-
+    
     public void draw() {
         background(0);
-        updateCamera();
-        translate(-cameraX, 0); // Apply camera translation
-        drawMap();
-        updatePlayer();
-        displayPlayer();
+        if (gameState == MENU) {
+            drawMenu();
+        } else {
+            updateCamera();
+            translate(-cameraX, 0);
+            drawMap();
+            updatePlayer();
+            displayPlayer();
+            drawLevelLabel();
+        }
     }
-
-    void updateCamera() {
-        float targetCameraX = playerX - width / 2 + tileSize / 2;
-        // Clamp the targetCameraX value to the map boundaries
-        targetCameraX = max(0, min(targetCameraX, map[0].length * tileSize - width));
-        // Apply linear interpolation to smooth the camera movement
-        cameraX = lerp(cameraX, targetCameraX, (float) 0.1);
+    
+    void drawMenu() {
+        fill(255);
+        textSize(32);
+        textAlign(CENTER, CENTER);
+        text("Press SPACE to start", width / 2, height / 2);
     }
-
+    
+    void startGame() {
+        gameState = LEVEL1;
+        loadLevel(currentLevel);
+    }
+    
+    void loadLevel(int level) {
+        String filename = "map" + level + ".json";
+        map = loadMap(filename);
+        playerX = tileSize;
+        playerY = tileSize;
+    }
+    
+    void changeLevel(int direction) {
+        currentLevel += direction;
+        if (currentLevel < 1) currentLevel = 3;
+        if (currentLevel > 3) currentLevel = 1;
+    
+        // Assign the correct game state
+        if (currentLevel == 1) gameState = LEVEL1;
+        else if (currentLevel == 2) gameState = LEVEL2;
+        else if (currentLevel == 3) gameState = LEVEL3;
+    
+        loadLevel(currentLevel);
+    }
+    
+    
+    
+    void drawLevelLabel() {
+        fill(255, 255, 255);
+        textSize(32);
+        textAlign(CENTER, CENTER);
+        text("Level " + currentLevel, width / 2, 30);
+    }
+    
     int[][] loadMap(String filename) {
         JSONObject json = loadJSONObject(filename);
         int w = json.getInt("width");
@@ -118,108 +137,75 @@ public class PlatformerGame extends PApplet {
         }
         return result;
     }
-
+    
+    void updateCamera() {
+        float targetCameraX = playerX - width / 2 + tileSize / 2;
+        targetCameraX = max(0, min(targetCameraX, map[0].length * tileSize - width));
+        cameraX = lerp(cameraX, targetCameraX, 0.1f);
+    }
+    
     void drawMap() {
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map[0].length; j++) {
                 int tile = map[i][j];
                 if (tile != 0) {
-                    int sx = (tile - 1) % 5 * tileSize / 2; // Adjust tileset source X
-                    int sy = (tile - 1) / 5 * tileSize / 2; // Adjust tileset source Y
+                    int sx = (tile - 1) % 5 * tileSize / 2;
+                    int sy = (tile - 1) / 5 * tileSize / 2;
                     copy(tileset, sx, sy, tileSize / 2, tileSize / 2, j * tileSize, i * tileSize, tileSize, tileSize);
                 }
             }
         }
     }
-
+    
     void updatePlayer() {
         float nextX = playerX;
         float nextY = playerY;
     
-        // Horizontal movement
-        if (keys['A']) {
-            nextX -= speed;
-        }
-        if (keys['D']) {
-            nextX += speed;
-        }
-    
-        // Jumping
+        if (keys['A']) nextX -= speed;
+        if (keys['D']) nextX += speed;
         if (keys[' '] && !isJumping) {
             playerYVelocity = jumpSpeed;
             isJumping = true;
         }
-    
-        // Gliding
-        if (keys[SHIFT] && playerYVelocity > 0) {
-            playerYVelocity += gravity / 8; // Slow down the fall even more during gliding
-        } else {
-            // Apply gravity
-            playerYVelocity += gravity;
-        }
+        if (keys[SHIFT] && playerYVelocity > 0) playerYVelocity += gravity / 8;
+        else playerYVelocity += gravity;
     
         nextY += playerYVelocity;
     
-        // Handle horizontal movement
-        if (!checkCollision(nextX, playerY)) {
-            playerX = nextX;
-        }
-    
-        // Handle vertical movement
-        if (!checkCollision(playerX, nextY)) {
-            playerY = nextY;
-        } else {
+        if (!checkCollision(nextX, playerY)) playerX = nextX;
+        if (!checkCollision(playerX, nextY)) playerY = nextY;
+        else {
             playerYVelocity = 0;
             isJumping = false;
         }
     
-        // Check if the player is still falling or jumping
-        if (playerYVelocity != 0) {
-            isJumping = true;
-        }
+        if (playerYVelocity != 0) isJumping = true;
     }
-
+    
     void displayPlayer() {
-        PImage currentSprite;
-
-        if (keys[' '] && isJumping) {
-            currentSprite = playerAnimations[9 + (frameCount / 10) % 2]; // Cycle through 2 jumping sprites
-        } else if (keys[SHIFT] && playerYVelocity > 0) {
-            currentSprite = playerAnimations[12 + (frameCount / 5) % 4]; // Cycle through gliding sprites faster
-        } else if (keys['A'] || keys['D']) {
-            currentSprite = playerAnimations[2 + (frameCount / 5) % 8]; // Cycle through 8 walking sprites faster
-        } else {
-            currentSprite = playerAnimations[(frameCount / 30) % 2]; // Cycle through 2 idle sprites
-        }
-
-        // Update the facing direction based on movement
-        if (keys['A']) {
-            facingRight = false;
-        } else if (keys['D']) {
-            facingRight = true;
-        }
-
-        // Draw the player with the correct facing direction
+        PImage currentSprite = keys[' '] && isJumping ? playerAnimations[9 + (frameCount / 10) % 2] :
+                              keys[SHIFT] && playerYVelocity > 0 ? playerAnimations[12 + (frameCount / 5) % 4] :
+                              (keys['A'] || keys['D']) ? playerAnimations[2 + (frameCount / 5) % 8] :
+                              playerAnimations[(frameCount / 30) % 2];
+    
+        if (keys['A']) facingRight = false;
+        if (keys['D']) facingRight = true;
+    
         pushMatrix();
         translate(playerX, playerY);
         if (!facingRight) {
-            scale(-1, 1); // Flip the image horizontally
-            translate(-tileSize, 0); // Adjust position after flipping
+            scale(-1, 1);
+            translate(-tileSize, 0);
         }
         image(currentSprite, 0, 0, tileSize, tileSize);
         popMatrix();
     }
-
+    
     boolean checkCollision(float x, float y) {
         int left = (int)(x / tileSize);
         int right = (int)((x + tileSize - 1) / tileSize);
         int top = (int)(y / tileSize);
         int bottom = (int)((y + tileSize - 1) / tileSize);
-
-        if (map[top][left] != 0 || map[top][right] != 0 || map[bottom][left] != 0 || map[bottom][right] != 0) {
-            return true;
-        }
-        return false;
+        return map[top][left] != 0 || map[top][right] != 0 || map[bottom][left] != 0 || map[bottom][right] != 0;
     }
-
 }
