@@ -19,7 +19,8 @@ public class PlatformerGame extends PApplet {
     float playerX, playerY;
     float speed = 6; // Double the speed
     float jumpSpeed = -20; // Double the jump speed
-    float gravity = 1; // Double the gravity
+    float gravity = 1; // Double the gravityd
+    boolean facingRight = true;
     float playerYVelocity = 0;
     boolean isJumping = false;
     boolean[] keys = new boolean[128];
@@ -134,7 +135,7 @@ public class PlatformerGame extends PApplet {
     void updatePlayer() {
         float nextX = playerX;
         float nextY = playerY;
-
+    
         // Horizontal movement
         if (keys['A']) {
             nextX -= speed;
@@ -142,28 +143,28 @@ public class PlatformerGame extends PApplet {
         if (keys['D']) {
             nextX += speed;
         }
-
+    
         // Jumping
         if (keys[' '] && !isJumping) {
             playerYVelocity = jumpSpeed;
             isJumping = true;
         }
-
+    
         // Gliding
         if (keys[SHIFT] && playerYVelocity > 0) {
-            playerYVelocity += gravity / 4; // Slow down the fall during gliding
+            playerYVelocity += gravity / 8; // Slow down the fall even more during gliding
         } else {
             // Apply gravity
             playerYVelocity += gravity;
         }
-
+    
         nextY += playerYVelocity;
-
+    
         // Handle horizontal movement
         if (!checkCollision(nextX, playerY)) {
             playerX = nextX;
         }
-
+    
         // Handle vertical movement
         if (!checkCollision(playerX, nextY)) {
             playerY = nextY;
@@ -171,50 +172,43 @@ public class PlatformerGame extends PApplet {
             playerYVelocity = 0;
             isJumping = false;
         }
-
+    
         // Check if the player is still falling or jumping
         if (playerYVelocity != 0) {
             isJumping = true;
         }
     }
 
-    boolean facingRight = true;
+    void displayPlayer() {
+        PImage currentSprite;
 
-void displayPlayer() {
-    PImage currentSprite;
+        if (keys[' '] && isJumping) {
+            currentSprite = playerAnimations[9 + (frameCount / 10) % 2]; // Cycle through 2 jumping sprites
+        } else if (keys[SHIFT] && playerYVelocity > 0) {
+            currentSprite = playerAnimations[12 + (frameCount / 5) % 4]; // Cycle through gliding sprites faster
+        } else if (keys['A'] || keys['D']) {
+            currentSprite = playerAnimations[2 + (frameCount / 5) % 8]; // Cycle through 8 walking sprites faster
+        } else {
+            currentSprite = playerAnimations[(frameCount / 30) % 2]; // Cycle through 2 idle sprites
+        }
 
-    if (keys[' '] && isJumping) {
-        currentSprite = playerAnimations[9 + (frameCount / 10) % 2]; // Cycle through 2 jumping sprites
-    } else if (keys[SHIFT] && playerYVelocity > 0) {
-        currentSprite = playerAnimations[12 + (frameCount / 5) % 4]; // Cycle through gliding sprites faster
-    } else if (keys['A'] || keys['D']) {
-        currentSprite = playerAnimations[2 + (frameCount / 5) % 8]; // Cycle through 8 walking sprites faster
-    } else {
-        currentSprite = playerAnimations[(frameCount / 30) % 2]; // Cycle through 2 idle sprites
+        // Update the facing direction based on movement
+        if (keys['A']) {
+            facingRight = false;
+        } else if (keys['D']) {
+            facingRight = true;
+        }
+
+        // Draw the player with the correct facing direction
+        pushMatrix();
+        translate(playerX, playerY);
+        if (!facingRight) {
+            scale(-1, 1); // Flip the image horizontally
+            translate(-tileSize, 0); // Adjust position after flipping
+        }
+        image(currentSprite, 0, 0, tileSize, tileSize);
+        popMatrix();
     }
-
-    // Update the facing direction based on movement
-    if (keys['A']) {
-        facingRight = false;
-    } else if (keys['D']) {
-        facingRight = true;
-    }
-
-    // Draw the player with the correct facing direction
-    pushMatrix();
-    translate(playerX, playerY);
-    if (!facingRight) {
-        scale(-1, 1); // Flip the image horizontally
-        translate(-tileSize, 0); // Adjust position after flipping
-    }
-    image(currentSprite, 0, 0, tileSize, tileSize);
-    popMatrix();
-}
-
-    
-    
-    
-    
 
     boolean checkCollision(float x, float y) {
         int left = (int)(x / tileSize);
