@@ -8,12 +8,12 @@ import processing.data.JSONObject;
 public class PlatformerGame extends PApplet {
 
     int[][] map;
-    int tileSize = 30;
+    int tileSize = 60; // Double the tile size
     PImage tileset;
     float playerX, playerY;
-    float speed = 3;
-    float jumpSpeed = -10;
-    float gravity = 0.5f;
+    float speed = 6; // Double the speed
+    float jumpSpeed = -20; // Double the jump speed
+    float gravity = 1; // Double the gravity
     float playerYVelocity = 0;
     boolean isJumping = false;
 
@@ -26,7 +26,7 @@ public class PlatformerGame extends PApplet {
     }
 
     public void settings() {
-        size(480, 270);
+        size(960, 540); // Double the window size
     }
 
     public void setup() {
@@ -97,9 +97,9 @@ public class PlatformerGame extends PApplet {
             for (int j = 0; j < map[0].length; j++) {
                 int tile = map[i][j];
                 if (tile != 0) {
-                    int sx = (tile - 1) % 5 * tileSize;
-                    int sy = (tile - 1) / 5 * tileSize;
-                    copy(tileset, sx, sy, tileSize, tileSize, j * tileSize, i * tileSize, tileSize, tileSize);
+                    int sx = (tile - 1) % 5 * tileSize / 2; // Adjust tileset source X
+                    int sy = (tile - 1) / 5 * tileSize / 2; // Adjust tileset source Y
+                    copy(tileset, sx, sy, tileSize / 2, tileSize / 2, j * tileSize, i * tileSize, tileSize, tileSize);
                 }
             }
         }
@@ -110,10 +110,10 @@ public class PlatformerGame extends PApplet {
         float nextY = playerY;
     
         // Horizontal movement
-        if (keys[LEFT]) {
+        if (keys['A']) {
             nextX -= speed;
         }
-        if (keys[RIGHT]) {
+        if (keys['D']) {
             nextX += speed;
         }
     
