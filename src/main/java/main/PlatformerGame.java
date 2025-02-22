@@ -11,7 +11,7 @@ public class PlatformerGame extends PApplet {
     int tileSize = 30;
     PImage tileset;
     float playerX, playerY;
-    float speed = 2;
+    float speed = 3;
     float jumpSpeed = -10;
     float gravity = 0.5f;
     float playerYVelocity = 0;
