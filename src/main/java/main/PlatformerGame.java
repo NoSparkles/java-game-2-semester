@@ -17,8 +17,8 @@ public class PlatformerGame extends PApplet {
     final int GLIDING = 3;
 
     float playerX, playerY;
-    float speed = 6; // Double the speed
-    float jumpSpeed = -20; // Double the jump speed
+    float speed = 5; // Double the speed
+    float jumpSpeed = -13; // Double the jump speed
     float gravity = 1; // Double the gravityd
     boolean facingRight = true;
     float playerYVelocity = 0;
