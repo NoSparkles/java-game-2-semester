@@ -24,8 +24,8 @@
     <build>
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
-                <targetPath>Resources</targetPath>
+                <directory>src/main/Resources</directory>
+                <targetPath></targetPath>
                 <includes>
                     <include>**/*</include>
                 </includes>
