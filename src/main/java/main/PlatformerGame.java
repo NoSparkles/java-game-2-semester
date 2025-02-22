@@ -17,6 +17,8 @@ public class PlatformerGame extends PApplet {
     float playerYVelocity = 0;
     boolean isJumping = false;
 
+    boolean[] keys = new boolean[128];
+
     public static void main(String[] args) {
         PApplet.main("main.PlatformerGame");
     }
@@ -40,6 +42,19 @@ public class PlatformerGame extends PApplet {
         playerY = tileSize;
         tileset.loadPixels();
     }
+
+    public void keyPressed() {
+        if (keyCode < 128) {
+            keys[keyCode] = true;
+        }
+    }
+    
+    public void keyReleased() {
+        if (keyCode < 128) {
+            keys[keyCode] = false;
+        }
+    }
+    
 
     public void draw() {
         background(0);
@@ -79,28 +94,41 @@ public class PlatformerGame extends PApplet {
     void updatePlayer() {
         float nextX = playerX;
         float nextY = playerY;
-
-        if (keyPressed) {
-            if (keyCode == LEFT) nextX -= speed;
-            if (keyCode == RIGHT) nextX += speed;
-            if (key == ' ' && !isJumping) {
-                playerYVelocity = jumpSpeed;
-                isJumping = true;
-            }
+    
+        // Horizontal movement
+        if (keys[LEFT]) {
+            nextX -= speed;
         }
-
+        if (keys[RIGHT]) {
+            nextX += speed;
+        }
+    
+        // Jumping
+        if (keys[' '] && !isJumping) {
+            playerYVelocity = jumpSpeed;
+            isJumping = true;
+        }
+    
+        // Apply gravity
         playerYVelocity += gravity;
         nextY += playerYVelocity;
-
+    
+        // Handle horizontal movement
         if (!checkCollision(nextX, playerY)) {
             playerX = nextX;
         }
+    
+        // Handle vertical movement
         if (!checkCollision(playerX, nextY)) {
             playerY = nextY;
-            isJumping = true;
         } else {
             playerYVelocity = 0;
             isJumping = false;
+        }
+    
+        // Check if the player is still falling or jumping
+        if (playerYVelocity != 0) {
+            isJumping = true;
         }
     }
 
