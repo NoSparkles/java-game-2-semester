@@ -113,17 +113,21 @@ public class PlatformerGame extends PApplet {
             int toolbarX = width - 120;
             int columnWidth = tileSize / 2;
             int cols = 2;  // Two columns for the toolbar
-            int rows = (int) ceil((float)tileImages.size() / cols);
+            int rows = 19;
     
-            if (mouseX >= toolbarX && mouseX < width) {
+            boolean clickedOnToolbar = mouseX >= toolbarX && mouseX < width;
+    
+            if (clickedOnToolbar) {
                 int col = (mouseX - toolbarX) / columnWidth;
                 int row = mouseY / columnWidth;
                 int index = row * cols + col;
     
-                if (index < tileImages.size()) {
+                if (col >= 0 && col < cols && row >= 0 && row < rows && index < tileImages.size()) {
                     selectedTileIndex = index;
                     println("Selected tile index: " + (selectedTileIndex + 1)); // Print the selected tile number
                     redraw(); // Ensure the toolbar gets redrawn immediately
+                } else {
+                    // Do nothing if clicking outside the valid tile area
                 }
             } else {
                 int tileX = (mouseX + (int)cameraX) / tileSize;
@@ -135,6 +139,7 @@ public class PlatformerGame extends PApplet {
             }
         }
     }
+
     
     void drawToolbar() {
         int toolbarX = width - 120;
