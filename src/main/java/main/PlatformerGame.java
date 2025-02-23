@@ -1,5 +1,7 @@
 package main;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import processing.core.PApplet;
 import processing.core.PImage;
@@ -13,6 +15,10 @@ public class PlatformerGame extends PApplet {
     PImage[] playerAnimations = new PImage[16];
     ArrayList<PImage> tileImages = new ArrayList<>();
     int selectedTileIndex = -1;
+
+    HashSet<Integer> passableTiles = new HashSet<>(Arrays.asList(
+        1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38
+    ));
 
     final int MENU = 0, LEVEL1 = 1, LEVEL2 = 2, LEVEL3 = 3;
     int gameState = MENU;
@@ -89,16 +95,18 @@ public class PlatformerGame extends PApplet {
             drawMenu();
         } else {
             updateCamera();
-            translate(-cameraX, 0);
+            translate(-cameraX, 0);  // Translate the camera view
             drawMap();
             updatePlayer();
             displayPlayer();
             drawLevelLabel();
+            translate(cameraX, 0);  // Reset translation before drawing the toolbar
             if (editingMode) {
                 drawToolbar();
             }
         }
     }
+    
 
     public void mousePressed() {
         if (editingMode) {
@@ -114,7 +122,7 @@ public class PlatformerGame extends PApplet {
     
                 if (index < tileImages.size()) {
                     selectedTileIndex = index;
-                    println("Selected tile number: " + (selectedTileIndex + 1)); // Print the selected tile number
+                    println("Selected tile index: " + (selectedTileIndex + 1)); // Print the selected tile number
                     redraw(); // Ensure the toolbar gets redrawn immediately
                 }
             } else {
@@ -127,9 +135,6 @@ public class PlatformerGame extends PApplet {
             }
         }
     }
-    
-    
-    
     
     void drawToolbar() {
         int toolbarX = width - 120;
@@ -235,8 +240,9 @@ public class PlatformerGame extends PApplet {
     }
     
     
-    
     void updatePlayer() {
+        if (editingMode) return;  // Do not update player if in editing mode
+    
         float nextX = playerX;
         float nextY = playerY;
     
@@ -260,6 +266,7 @@ public class PlatformerGame extends PApplet {
     
         if (playerYVelocity != 0) isJumping = true;
     }
+    
     
     void displayPlayer() {
         PImage currentSprite = keys[' '] && isJumping ? playerAnimations[9 + (frameCount / 10) % 2] :
@@ -285,12 +292,12 @@ public class PlatformerGame extends PApplet {
         int right = (int)((x + tileSize - 1) / tileSize);
         int top = (int)(y / tileSize);
         int bottom = (int)((y + tileSize - 1) / tileSize);
-    
-        // Check collision with non-zero tiles
-        return (map[top][left] != 0 && map[top][left] != 1) || 
-               (map[top][right] != 0 && map[top][right] != 1) || 
-               (map[bottom][left] != 0 && map[bottom][left] != 1) || 
-               (map[bottom][right] != 0 && map[bottom][right] != 1);
+
+        // Check collision with non-passable tiles
+        return !passableTiles.contains(map[top][left]) || 
+               !passableTiles.contains(map[top][right]) || 
+               !passableTiles.contains(map[bottom][left]) || 
+               !passableTiles.contains(map[bottom][right]);
     }
     
     
