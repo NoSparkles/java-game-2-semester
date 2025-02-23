@@ -76,6 +76,12 @@ public class PlatformerGame extends PApplet {
         if (keyCode < 128) keys[keyCode] = true;
         if (key == 'P' || key == 'p') {
             editingMode = !editingMode;
+            if (!editingMode) {
+                // Snap camera back to player when exiting editing mode
+                float targetCameraX = playerX - width / 2 + tileSize / 2;
+                targetCameraX = max(0, min(targetCameraX, map[0].length * tileSize - width));
+                cameraX = targetCameraX;
+            }
         }
         if (gameState == MENU && key == ' ') startGame();
         if (gameState != MENU) {
@@ -83,6 +89,7 @@ public class PlatformerGame extends PApplet {
             if (key == 'K' || key == 'k') changeLevel(1);
         }
     }
+    
     
 
     public void keyReleased() {
@@ -113,7 +120,6 @@ public class PlatformerGame extends PApplet {
             int toolbarX = width - 120;
             int columnWidth = tileSize / 2;
             int cols = 2;  // Two columns for the toolbar
-            int rows = 19;
     
             boolean clickedOnToolbar = mouseX >= toolbarX && mouseX < width;
     
@@ -122,16 +128,27 @@ public class PlatformerGame extends PApplet {
                 int row = mouseY / columnWidth;
                 int index = row * cols + col;
     
-                if (col >= 0 && col < cols && row >= 0 && row < rows && index < tileImages.size()) {
+                if (col >= 0 && col < cols && row >= 0 && index < tileImages.size()) {
                     selectedTileIndex = index;
                     println("Selected tile index: " + (selectedTileIndex + 1)); // Print the selected tile number
                     redraw(); // Ensure the toolbar gets redrawn immediately
                 } else {
-                    // Do nothing if clicking outside the valid tile area
+                    selectedTileIndex = -1;  // Deselect tile if clicking outside valid tile area
                 }
             } else {
                 int tileX = (mouseX + (int)cameraX) / tileSize;
                 int tileY = mouseY / tileSize;
+    
+                // Extend the map width if necessary and set new tiles to 1
+                if (tileX >= map[0].length) {
+                    for (int i = 0; i < map.length; i++) {
+                        int[] newRow = new int[tileX + 1];
+                        System.arraycopy(map[i], 0, newRow, 0, map[i].length);
+                        Arrays.fill(newRow, map[i].length, newRow.length, 1); // Set new tiles to 1
+                        map[i] = newRow;
+                    }
+                }
+    
                 if (selectedTileIndex != -1 && tileX < map[0].length && tileY < map.length) {
                     map[tileY][tileX] = selectedTileIndex + 1; // Correctly place the selected tile
                     println("Placed tile number: " + (selectedTileIndex + 1)); // Print the placed tile number
@@ -139,6 +156,8 @@ public class PlatformerGame extends PApplet {
             }
         }
     }
+    
+    
 
     
     void drawToolbar() {
@@ -225,10 +244,20 @@ public class PlatformerGame extends PApplet {
     }
 
     void updateCamera() {
-        float targetCameraX = playerX - width / 2 + tileSize / 2;
-        targetCameraX = max(0, min(targetCameraX, map[0].length * tileSize - width));
-        cameraX = lerp(cameraX, targetCameraX, 0.1f);
+        if (editingMode) {
+            // Allow camera to move freely to the right, but restrict movement to the left
+            if (keys['A']) cameraX -= speed;
+            if (keys['D']) cameraX += speed;
+            cameraX = max(0, cameraX); // Ensure camera doesn't go left beyond the left border
+        } else {
+            // Camera follows the player in playing mode
+            float targetCameraX = playerX - width / 2 + tileSize / 2;
+            targetCameraX = max(0, min(targetCameraX, map[0].length * tileSize - width));
+            cameraX = lerp(cameraX, targetCameraX, 0.1f);
+        }
     }
+    
+    
     
     void drawMap() {
         for (int i = 0; i < map.length; i++) {
