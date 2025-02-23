@@ -260,18 +260,23 @@ public class PlatformerGame extends PApplet {
     
     
     void drawMap() {
+        int startX = (int) cameraX / tileSize;
+        int endX = startX + (width / tileSize) + 1;
         for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map[0].length; j++) {
-                int tile = map[i][j];
-                if (tile != 0) {
-                    int tileIndex = tile - 1; // Adjust the tile index
-                    int sx = (tileIndex % (tileset.width / (tileSize / 2))) * (tileSize / 2);
-                    int sy = (tileIndex / (tileset.width / (tileSize / 2))) * (tileSize / 2);
-                    copy(tileset, sx, sy, tileSize / 2, tileSize / 2, j * tileSize, i * tileSize, tileSize, tileSize);
+            for (int j = startX; j < endX; j++) {
+                if (j < map[0].length) {
+                    int tile = map[i][j];
+                    if (tile != 0) {
+                        int tileIndex = tile - 1; // Adjust the tile index
+                        int sx = (tileIndex % (tileset.width / (tileSize / 2))) * (tileSize / 2);
+                        int sy = (tileIndex / (tileset.width / (tileSize / 2))) * (tileSize / 2);
+                        copy(tileset, sx, sy, tileSize / 2, tileSize / 2, j * tileSize, i * tileSize, tileSize, tileSize);
+                    }
                 }
             }
         }
     }
+    
     
     
     void updatePlayer() {
