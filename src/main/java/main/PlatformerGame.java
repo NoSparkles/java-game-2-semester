@@ -32,6 +32,11 @@ public class PlatformerGame extends PApplet {
     boolean[] keys = new boolean[128];
     float cameraX = 0;
 
+    // Define player dimensions relative to tile size
+    int playerWidth = tileSize / 3 * 2;
+    int playerHeight = tileSize / 3 * 2;
+
+
     public static void main(String[] args) {
         PApplet.main("main.PlatformerGame");
     }
@@ -360,7 +365,6 @@ public class PlatformerGame extends PApplet {
         return -1;  // Return -1 if out of bounds
     }
     
-    
     void displayPlayer() {
         PImage currentSprite = keys[' '] && isJumping ? playerAnimations[9 + (frameCount / 10) % 2] :
                               keys[SHIFT] && playerYVelocity > 0 ? playerAnimations[12 + (frameCount / 5) % 4] :
@@ -374,24 +378,26 @@ public class PlatformerGame extends PApplet {
         translate(playerX, playerY);
         if (!facingRight) {
             scale(-1, 1);
-            translate(-tileSize, 0);
+            translate(-playerWidth, 0);
         }
-        image(currentSprite, 0, 0, tileSize, tileSize);
+        image(currentSprite, 0, 0, playerWidth, playerHeight);
         popMatrix();
     }
     
+    
     boolean checkCollision(float x, float y) {
         int left = (int)(x / tileSize);
-        int right = (int)((x + tileSize - 1) / tileSize);
+        int right = (int)((x + playerWidth - 1) / tileSize);
         int top = (int)(y / tileSize);
-        int bottom = (int)((y + tileSize - 1) / tileSize);
-
+        int bottom = (int)((y + playerHeight - 1) / tileSize);
+    
         // Check collision with non-passable tiles
         return !passableTiles.contains(map[top][left]) || 
                !passableTiles.contains(map[top][right]) || 
                !passableTiles.contains(map[bottom][left]) || 
                !passableTiles.contains(map[bottom][right]);
     }
+    
     
     
 }
