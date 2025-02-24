@@ -82,6 +82,11 @@ public class PlatformerGame extends PApplet {
                 float targetCameraX = playerX - width / 2 + tileSize / 2;
                 targetCameraX = max(0, min(targetCameraX, map[0].length * tileSize - width));
                 cameraX = targetCameraX;
+                
+                // Save the map when exiting editing mode
+                String filename = "map" + currentLevel + ".json";
+                saveMap(map, filename);
+                println("Map saved to " + filename);
             }
         }
         if (gameState == MENU && key == ' ') startGame();
@@ -92,10 +97,30 @@ public class PlatformerGame extends PApplet {
     }
     
     
+    
 
     public void keyReleased() {
         if (keyCode < 128) keys[keyCode] = false;
     }
+
+    void saveMap(int[][] map, String filename) {
+        JSONObject json = new JSONObject();
+        json.setInt("width", map[0].length);
+        json.setInt("height", map.length);
+        
+        JSONArray mapArray = new JSONArray();
+        for (int i = 0; i < map.length; i++) {
+            JSONArray row = new JSONArray();
+            for (int j = 0; j < map[i].length; j++) {
+                row.append(map[i][j]);
+            }
+            mapArray.append(row);
+        }
+        json.setJSONArray("map", mapArray);
+        
+        saveJSONObject(json, filename);
+    }
+    
 
     public void draw() {
         background(0);
