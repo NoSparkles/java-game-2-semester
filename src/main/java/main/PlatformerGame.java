@@ -20,7 +20,8 @@ public class PlatformerGame extends PApplet {
         1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38
     ));
 
-    final int MENU = 0, LEVEL1 = 1, LEVEL2 = 2, LEVEL3 = 3;
+    // Define the new WIN state
+    final int MENU = 0, LEVEL1 = 1, LEVEL2 = 2, LEVEL3 = 3, WIN = 4;
     int gameState = MENU;
     int currentLevel = 1;
 
@@ -100,6 +101,8 @@ public class PlatformerGame extends PApplet {
         background(0);
         if (gameState == MENU) {
             drawMenu();
+        } else if (gameState == WIN) {
+            drawWinScreen();
         } else {
             updateCamera();
             translate(-cameraX, 0);  // Translate the camera view
@@ -212,13 +215,24 @@ public class PlatformerGame extends PApplet {
     void changeLevel(int direction) {
         currentLevel += direction;
         if (currentLevel < 1) currentLevel = 3;
-        if (currentLevel > 3) currentLevel = 1;
-
+        if (currentLevel > 3) {
+            gameState = WIN;  // Switch to WIN state after level 3
+            return;
+        }
+    
         if (currentLevel == 1) gameState = LEVEL1;
         else if (currentLevel == 2) gameState = LEVEL2;
         else if (currentLevel == 3) gameState = LEVEL3;
-
+    
         loadLevel(currentLevel);
+    }
+
+    void drawWinScreen() {
+        background(255);  // White background
+        fill(0);  // Black text
+        textSize(48);
+        textAlign(CENTER, CENTER);
+        text("You Won!", width / 2, height / 2);
     }
 
     void drawLevelLabel() {
@@ -304,6 +318,21 @@ public class PlatformerGame extends PApplet {
         }
     
         if (playerYVelocity != 0) isJumping = true;
+    
+        // Check if the player touches a tile with number 17
+        if (checkTileType(playerX, playerY) == 17) {
+            changeLevel(1);  // Change to the next level
+        }
+    }
+
+    int checkTileType(float x, float y) {
+        int tileX = (int) (x / tileSize);
+        int tileY = (int) (y / tileSize);
+    
+        if (tileX >= 0 && tileX < map[0].length && tileY >= 0 && tileY < map.length) {
+            return map[tileY][tileX];
+        }
+        return -1;  // Return -1 if out of bounds
     }
     
     
