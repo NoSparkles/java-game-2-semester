@@ -236,11 +236,17 @@ public class PlatformerGame extends PApplet {
     }
 
     void loadLevel(int level) {
-        String filename = "map" + level + ".json";
-        map = loadMap(filename);
-        playerX = tileSize;
-        playerY = tileSize;
+        try {
+            String filename = "map" + level + ".json";
+            map = loadMap(filename);
+            playerX = tileSize;
+            playerY = tileSize;
+        } catch (Exception e) {
+            println("Error loading level: " + e.getMessage());
+            gameState = MENU; // Return to menu on error
+        }
     }
+    
 
     void changeLevel(int direction) {
         currentLevel += direction;
@@ -321,10 +327,21 @@ public class PlatformerGame extends PApplet {
         }
     }
     
+    void respawnPlayer() {
+        playerX = tileSize; // Reset to starting position
+        playerY = tileSize;
+        playerYVelocity = 0;
+        isJumping = false;
+    
+        if (currentLevel > 0) {
+            loadLevel(currentLevel); // Reload the current level safely
+        }
+    }
+    
     
     
     void updatePlayer() {
-        if (editingMode) return;  // Do not update player if in editing mode
+        if (editingMode) return;
     
         float nextX = playerX;
         float nextY = playerY;
@@ -347,13 +364,20 @@ public class PlatformerGame extends PApplet {
             isJumping = false;
         }
     
+        // Check if the player goes out of bounds
+        if (playerX < 0 || playerX + playerWidth > map[0].length * tileSize || 
+            playerY < 0 || playerY + playerHeight > map.length * tileSize) {
+            respawnPlayer(); // Respawn player if out of bounds
+        }
+    
         if (playerYVelocity != 0) isJumping = true;
     
-        // Check if the player touches a tile with number 17
         if (checkTileType(playerX, playerY) == 17) {
-            changeLevel(1);  // Change to the next level
+            changeLevel(1);
         }
     }
+    
+    
 
     int checkTileType(float x, float y) {
         int tileX = (int) (x / tileSize);
@@ -390,6 +414,11 @@ public class PlatformerGame extends PApplet {
         int right = (int)((x + playerWidth - 1) / tileSize);
         int top = (int)(y / tileSize);
         int bottom = (int)((y + playerHeight - 1) / tileSize);
+
+        if (left < 0 || right >= map[0].length || top < 0 || bottom >= map.length) {
+            respawnPlayer();
+            return false;
+        }
     
         // Check collision with non-passable tiles
         return !passableTiles.contains(map[top][left]) || 
