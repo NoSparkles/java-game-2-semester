@@ -20,7 +20,6 @@ public class PlatformerGame extends PApplet {
         1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38
     ));
 
-    // Define the new WIN state
     final int MENU = 0, LEVEL1 = 1, LEVEL2 = 2, LEVEL3 = 3, WIN = 4;
     int gameState = MENU;
     int currentLevel = 1;
@@ -32,10 +31,8 @@ public class PlatformerGame extends PApplet {
     boolean[] keys = new boolean[128];
     float cameraX = 0;
 
-    // Define player dimensions relative to tile size
     int playerWidth = tileSize / 3 * 2;
     int playerHeight = tileSize / 3 * 2;
-
 
     public static void main(String[] args) {
         PApplet.main("main.PlatformerGame");
@@ -76,8 +73,49 @@ public class PlatformerGame extends PApplet {
             }
         }
     }
-    
 
+    int[][] loadMap(String filename) {
+        JSONObject json = loadJSONObject(filename);
+        int w = json.getInt("width");
+        int h = json.getInt("height");
+        JSONArray mapArray = json.getJSONArray("map");
+        int[][] result = new int[h][w];
+        for (int i = 0; i < h; i++) {
+            JSONArray row = mapArray.getJSONArray(i);
+            for (int j = 0; j < w; j++) {
+                result[i][j] = row.getInt(j);
+            }
+        }
+        return result;
+    }
+
+    void startGame() {
+        gameState = LEVEL1;
+        loadLevel(currentLevel);
+    }
+
+    void loadLevel(int level) {
+        String filename = "map" + level + ".json";
+        map = loadMap(filename);
+        playerX = tileSize;
+        playerY = tileSize;
+    }
+
+    void changeLevel(int direction) {
+        currentLevel += direction;
+        if (currentLevel < 1) currentLevel = 3;
+        if (currentLevel > 3) {
+            gameState = WIN;  // Switch to WIN state after level 3
+            return;
+        }
+    
+        if (currentLevel == 1) gameState = LEVEL1;
+        else if (currentLevel == 2) gameState = LEVEL2;
+        else if (currentLevel == 3) gameState = LEVEL3;
+    
+        loadLevel(currentLevel);
+    }
+    
     public void keyPressed() {
         if (keyCode < 128) keys[keyCode] = true;
         if (key == 'P' || key == 'p') {
@@ -101,52 +139,9 @@ public class PlatformerGame extends PApplet {
         }
     }
     
-    
-    
-
     public void keyReleased() {
         if (keyCode < 128) keys[keyCode] = false;
     }
-
-    void saveMap(int[][] map, String filename) {
-        JSONObject json = new JSONObject();
-        json.setInt("width", map[0].length);
-        json.setInt("height", map.length);
-        
-        JSONArray mapArray = new JSONArray();
-        for (int i = 0; i < map.length; i++) {
-            JSONArray row = new JSONArray();
-            for (int j = 0; j < map[i].length; j++) {
-                row.append(map[i][j]);
-            }
-            mapArray.append(row);
-        }
-        json.setJSONArray("map", mapArray);
-        
-        saveJSONObject(json, filename);
-    }
-    
-
-    public void draw() {
-        background(0);
-        if (gameState == MENU) {
-            drawMenu();
-        } else if (gameState == WIN) {
-            drawWinScreen();
-        } else {
-            updateCamera();
-            translate(-cameraX, 0);  // Translate the camera view
-            drawMap();
-            updatePlayer();
-            displayPlayer();
-            drawLevelLabel();
-            translate(cameraX, 0);  // Reset translation before drawing the toolbar
-            if (editingMode) {
-                drawToolbar();
-            }
-        }
-    }
-    
 
     public void mousePressed() {
         if (editingMode) {
@@ -189,10 +184,105 @@ public class PlatformerGame extends PApplet {
             }
         }
     }
-    
+
+    void saveMap(int[][] map, String filename) {
+        JSONObject json = new JSONObject();
+        json.setInt("width", map[0].length);
+        json.setInt("height", map.length);
+        
+        JSONArray mapArray = new JSONArray();
+        for (int i = 0; i < map.length; i++) {
+            JSONArray row = new JSONArray();
+            for (int j = 0; j < map[i].length; j++) {
+                row.append(map[i][j]);
+            }
+            mapArray.append(row);
+        }
+        json.setJSONArray("map", mapArray);
+        
+        saveJSONObject(json, filename);
+    }
     
 
+    public void draw() {
+        background(0);
+        if (gameState == MENU) {
+            drawMenu();
+        } else if (gameState == WIN) {
+            drawWinScreen();
+        } else {
+            updateCamera();
+            translate(-cameraX, 0);  // Translate the camera view
+            drawMap();
+            updatePlayer();
+            drawPlayer();
+            drawLevelLabel();
+            translate(cameraX, 0);  // Reset translation before drawing the toolbar
+            if (editingMode) {
+                drawToolbar();
+            }
+        }
+    }
+
+    void drawMap() {
+        int startX = (int) cameraX / tileSize;
+        int endX = startX + (width / tileSize) + 1;
+        for (int i = 0; i < map.length; i++) {
+            for (int j = startX; j < endX; j++) {
+                if (j < map[0].length) {
+                    int tile = map[i][j];
+                    if (tile != 0) {
+                        int tileIndex = tile - 1; // Adjust the tile index
+                        int sx = (tileIndex % (tileset.width / (tileSize / 2))) * (tileSize / 2);
+                        int sy = (tileIndex / (tileset.width / (tileSize / 2))) * (tileSize / 2);
+                        copy(tileset, sx, sy, tileSize / 2, tileSize / 2, j * tileSize, i * tileSize, tileSize, tileSize);
+                    }
+                }
+            }
+        }
+    }
+
+    void drawPlayer() {
+        PImage currentSprite = keys[' '] && isJumping ? playerAnimations[9 + (frameCount / 10) % 2] :
+                              keys[SHIFT] && playerYVelocity > 0 ? playerAnimations[12 + (frameCount / 5) % 4] :
+                              (keys['A'] || keys['D']) ? playerAnimations[2 + (frameCount / 5) % 8] :
+                              playerAnimations[(frameCount / 30) % 2];
     
+        if (keys['A']) facingRight = false;
+        if (keys['D']) facingRight = true;
+    
+        pushMatrix();
+        translate(playerX, playerY);
+        if (!facingRight) {
+            scale(-1, 1);
+            translate(-playerWidth, 0);
+        }
+        image(currentSprite, 0, 0, playerWidth, playerHeight);
+        popMatrix();
+    }
+
+    void drawMenu() {
+        fill(255);
+        textSize(32);
+        textAlign(CENTER, CENTER);
+        text("Press SPACE to start", width / 2, height / 2);
+    }
+
+    void drawWinScreen() {
+        background(255);  // White background
+        fill(0);  // Black text
+        textSize(48);
+        textAlign(CENTER, CENTER);
+        text("You Won!", width / 2, height / 2);
+    }
+
+    void drawLevelLabel() {
+        fill(255, 255, 255);
+        textSize(32);
+        textAlign(CENTER, CENTER);
+        text("Level " + currentLevel, width / 2, 30);
+    }
+
     void drawToolbar() {
         int toolbarX = width - 120;
         int columnWidth = tileSize / 2;
@@ -220,72 +310,6 @@ public class PlatformerGame extends PApplet {
         }
         noStroke();
     }
-    
-    
-
-    void drawMenu() {
-        fill(255);
-        textSize(32);
-        textAlign(CENTER, CENTER);
-        text("Press SPACE to start", width / 2, height / 2);
-    }
-
-    void startGame() {
-        gameState = LEVEL1;
-        loadLevel(currentLevel);
-    }
-
-    void loadLevel(int level) {
-        String filename = "map" + level + ".json";
-        map = loadMap(filename);
-        playerX = tileSize;
-        playerY = tileSize;
-    }
-
-    void changeLevel(int direction) {
-        currentLevel += direction;
-        if (currentLevel < 1) currentLevel = 3;
-        if (currentLevel > 3) {
-            gameState = WIN;  // Switch to WIN state after level 3
-            return;
-        }
-    
-        if (currentLevel == 1) gameState = LEVEL1;
-        else if (currentLevel == 2) gameState = LEVEL2;
-        else if (currentLevel == 3) gameState = LEVEL3;
-    
-        loadLevel(currentLevel);
-    }
-
-    void drawWinScreen() {
-        background(255);  // White background
-        fill(0);  // Black text
-        textSize(48);
-        textAlign(CENTER, CENTER);
-        text("You Won!", width / 2, height / 2);
-    }
-
-    void drawLevelLabel() {
-        fill(255, 255, 255);
-        textSize(32);
-        textAlign(CENTER, CENTER);
-        text("Level " + currentLevel, width / 2, 30);
-    }
-
-    int[][] loadMap(String filename) {
-        JSONObject json = loadJSONObject(filename);
-        int w = json.getInt("width");
-        int h = json.getInt("height");
-        JSONArray mapArray = json.getJSONArray("map");
-        int[][] result = new int[h][w];
-        for (int i = 0; i < h; i++) {
-            JSONArray row = mapArray.getJSONArray(i);
-            for (int j = 0; j < w; j++) {
-                result[i][j] = row.getInt(j);
-            }
-        }
-        return result;
-    }
 
     void updateCamera() {
         if (editingMode) {
@@ -300,29 +324,7 @@ public class PlatformerGame extends PApplet {
             cameraX = lerp(cameraX, targetCameraX, 0.1f);
         }
     }
-    
-    
-    
-    void drawMap() {
-        int startX = (int) cameraX / tileSize;
-        int endX = startX + (width / tileSize) + 1;
-        for (int i = 0; i < map.length; i++) {
-            for (int j = startX; j < endX; j++) {
-                if (j < map[0].length) {
-                    int tile = map[i][j];
-                    if (tile != 0) {
-                        int tileIndex = tile - 1; // Adjust the tile index
-                        int sx = (tileIndex % (tileset.width / (tileSize / 2))) * (tileSize / 2);
-                        int sy = (tileIndex / (tileset.width / (tileSize / 2))) * (tileSize / 2);
-                        copy(tileset, sx, sy, tileSize / 2, tileSize / 2, j * tileSize, i * tileSize, tileSize, tileSize);
-                    }
-                }
-            }
-        }
-    }
-    
-    
-    
+
     void updatePlayer() {
         if (editingMode) return;  // Do not update player if in editing mode
     
@@ -364,26 +366,6 @@ public class PlatformerGame extends PApplet {
         }
         return -1;  // Return -1 if out of bounds
     }
-    
-    void displayPlayer() {
-        PImage currentSprite = keys[' '] && isJumping ? playerAnimations[9 + (frameCount / 10) % 2] :
-                              keys[SHIFT] && playerYVelocity > 0 ? playerAnimations[12 + (frameCount / 5) % 4] :
-                              (keys['A'] || keys['D']) ? playerAnimations[2 + (frameCount / 5) % 8] :
-                              playerAnimations[(frameCount / 30) % 2];
-    
-        if (keys['A']) facingRight = false;
-        if (keys['D']) facingRight = true;
-    
-        pushMatrix();
-        translate(playerX, playerY);
-        if (!facingRight) {
-            scale(-1, 1);
-            translate(-playerWidth, 0);
-        }
-        image(currentSprite, 0, 0, playerWidth, playerHeight);
-        popMatrix();
-    }
-    
     
     boolean checkCollision(float x, float y) {
         int left = (int)(x / tileSize);
