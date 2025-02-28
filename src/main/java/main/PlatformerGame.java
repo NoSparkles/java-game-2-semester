@@ -115,6 +115,17 @@ public class PlatformerGame extends PApplet {
     
         loadLevel(currentLevel);
     }
+
+    void respawnPlayer() {
+        playerX = tileSize; // Reset to starting position
+        playerY = tileSize;
+        playerYVelocity = 0;
+        isJumping = false;
+    
+        if (currentLevel > 0) {
+            loadLevel(currentLevel); // Reload the current level safely
+        }
+    }
     
     public void keyPressed() {
         if (keyCode < 128) keys[keyCode] = true;
@@ -348,6 +359,11 @@ public class PlatformerGame extends PApplet {
             playerYVelocity = 0;
             isJumping = false;
         }
+
+        if (playerX < 0 || playerX + playerWidth > map[0].length * tileSize || 
+            playerY < 0 || playerY + playerHeight > map.length * tileSize) {
+            respawnPlayer(); // Respawn player if out of bounds
+        }
     
         if (playerYVelocity != 0) isJumping = true;
     
@@ -372,6 +388,11 @@ public class PlatformerGame extends PApplet {
         int right = (int)((x + playerWidth - 1) / tileSize);
         int top = (int)(y / tileSize);
         int bottom = (int)((y + playerHeight - 1) / tileSize);
+
+        if (left < 0 || right >= map[0].length || top < 0 || bottom >= map.length) {
+            respawnPlayer();
+            return false;
+        }
     
         // Check collision with non-passable tiles
         return !passableTiles.contains(map[top][left]) || 
