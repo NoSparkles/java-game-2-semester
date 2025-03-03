@@ -243,7 +243,7 @@ public class PlatformerGame extends PApplet {
                 if (j < map[0].length) {
                     int tile = map[i][j];
                     if (tile != 0) {
-                        int tileIndex = tile - 1; // Adjust the tile index
+                        int tileIndex = tile - 1;
                         int sx = (tileIndex % (tileset.width / (tileSize / 2))) * (tileSize / 2);
                         int sy = (tileIndex / (tileset.width / (tileSize / 2))) * (tileSize / 2);
                         copy(tileset, sx, sy, tileSize / 2, tileSize / 2, j * tileSize, i * tileSize, tileSize, tileSize);
@@ -280,8 +280,8 @@ public class PlatformerGame extends PApplet {
     }
 
     void drawWinScreen() {
-        background(255);  // White background
-        fill(0);  // Black text
+        background(255);
+        fill(0);
         textSize(48);
         textAlign(CENTER, CENTER);
         text("You Won!", width / 2, height / 2);
@@ -297,10 +297,10 @@ public class PlatformerGame extends PApplet {
     void drawToolbar() {
         int toolbarX = width - 120;
         int columnWidth = tileSize / 2;
-        int cols = 2;  // Two columns for the toolbar
+        int cols = 2;
         int rows = (int) ceil((float)tileImages.size() / cols);
     
-        fill(200);  // Light gray color for the background
+        fill(200);
         noStroke();
         rect(toolbarX, 0, 120, height);  // Draw the background
     
@@ -324,10 +324,9 @@ public class PlatformerGame extends PApplet {
 
     void updateCamera() {
         if (editingMode) {
-            // Allow camera to move freely to the right, but restrict movement to the left
             if (keys['A']) cameraX -= speed;
             if (keys['D']) cameraX += speed;
-            cameraX = max(0, cameraX); // Ensure camera doesn't go left beyond the left border
+            cameraX = max(0, cameraX);
         } else {
             // Camera follows the player in playing mode
             float targetCameraX = playerX - width / 2 + tileSize / 2;
@@ -337,7 +336,7 @@ public class PlatformerGame extends PApplet {
     }
 
     void updatePlayer() {
-        if (editingMode) return;  // Do not update player if in editing mode
+        if (editingMode) return;
     
         float nextX = playerX;
         float nextY = playerY;
@@ -362,14 +361,14 @@ public class PlatformerGame extends PApplet {
 
         if (playerX < 0 || playerX + playerWidth > map[0].length * tileSize || 
             playerY < 0 || playerY + playerHeight > map.length * tileSize) {
-            respawnPlayer(); // Respawn player if out of bounds
+            respawnPlayer();
         }
     
         if (playerYVelocity != 0) isJumping = true;
     
-        // Check if the player touches a tile with number 17
+        // tile 17 changes gamestate to the next level
         if (checkTileType(playerX, playerY) == 17) {
-            changeLevel(1);  // Change to the next level
+            changeLevel(1);
         }
     }
 
@@ -380,7 +379,7 @@ public class PlatformerGame extends PApplet {
         if (tileX >= 0 && tileX < map[0].length && tileY >= 0 && tileY < map.length) {
             return map[tileY][tileX];
         }
-        return -1;  // Return -1 if out of bounds
+        return -1; // out of bounds
     }
     
     boolean checkCollision(float x, float y) {
@@ -394,7 +393,6 @@ public class PlatformerGame extends PApplet {
             return false;
         }
     
-        // Check collision with non-passable tiles
         return !passableTiles.contains(map[top][left]) || 
                !passableTiles.contains(map[top][right]) || 
                !passableTiles.contains(map[bottom][left]) || 
